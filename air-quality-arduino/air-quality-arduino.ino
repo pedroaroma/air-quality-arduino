@@ -5,7 +5,7 @@
 #include <SD.h>
 #include <SPI.h>
 
-#define         Board                   ("Arduino NANO")
+#define         Board                   ("Arduino UNO")
 #define         Pin3                     (A0)  //Analog input 0 of your arduino
 #define         Pin4                     (A1)  //Analog input 1 of your arduino
 #define         Pin135                   (A2)  //Analog input 2 of your arduino
@@ -22,7 +22,8 @@
 #define         ADC_Bit_Resolution        (10) // 10 bit ADC 
 #define         Voltage_Resolution        (5) // Volt resolution to calc the voltage
 #define         Type                      ("Arduino UNO") //Board used
-//Declare Sensor
+
+//sensores
 MQUnifiedsensor MQ3(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin3, Type);
 MQUnifiedsensor MQ4(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin4, Type);
 MQUnifiedsensor MQ135(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin135, Type);
@@ -34,6 +35,7 @@ MQUnifiedsensor MQ9(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin9, Type);
 File myFile;
 float Alcohol;
 int pinoSS = 10;
+int calibra = 0;
 
 void setup() {
   
@@ -42,14 +44,16 @@ void setup() {
   pinMode(pinoSS, OUTPUT);
 
 
-  if (SD.begin()) { // Inicializa o SD Card
-    Serial.println("SD Inicializado com sucesso."); // Imprime na tela
-    myFile = SD.open("sensors.txt", FILE_WRITE);
+  if (SD.begin()) { // Inicializa o SD Card // Imprime na tela
+    Serial.println("subiu o sd");
+    myFile = SD.open("1.txt", FILE_WRITE);
   }
   else {
-      Serial.println("Falha na inicialização do SD Card.");
+      Serial.println("sdfail");
   //return;
 } 
+
+
   MQ3.init();
   MQ3.setRegressionMethod(1); //_PPM =  a*ratio^b
   MQ3.setR0(0.45);
@@ -74,8 +78,8 @@ void setup() {
   MQ9.setRegressionMethod(1); //_PPM =  a*ratio^b
   MQ9.setR0(13.93);
 
-
 /**
+  delay(1000);
   Serial.print("Calibrating please wait.");
   float  MQ3calcR0 = 0,
          MQ4calcR0 = 0,
@@ -118,151 +122,61 @@ void setup() {
   Serial.print(MQ8calcR0 / 10); Serial.print(" | ");
   Serial.print(MQ9calcR0 / 10); Serial.println(" |");
 
-  **/
-
+*/
 }
+
 void loop() {
+
   //Update the voltage lectures
-  MQ3.update();
+  MQ3.update();  
   MQ4.update();
   MQ135.update();  
   MQ7.update();
   MQ8.update();
   MQ9.update();
 
+  MQ7.setA(99.042); MQ7.setB(-1.518); //Monoxido de carbono
+  float CO = MQ7.readSensor(); 
 
-  //MQ3.setA(0.3934); MQ3.setB(-1.504); //Alcohol
-//float Alcohol = MQ3.readSensor(); 
-Alcohol = analogRead(A0); 
+  MQ135.setA(110.47); MQ135.setB(-2.862); //CO2 
+  float CO2 = MQ135.readSensor();
 
-  MQ3.setA(4.8387); MQ3.setB(-2.68); //Benzene
-float Benzene = MQ3.readSensor(); 
-  
-  MQ3.setA(7585.3); MQ3.setB(-2.849); //Hexane
-float Hexane = MQ3.readSensor(); 
+  MQ135.setA(102.2 ); MQ135.setB(-2.473); //Amonia
+  float Amonia = MQ135.readSensor();
 
-  MQ4.setA(1012.7); MQ4.setB(-2.786); //CH4
-float CH4 = MQ4.readSensor(); 
+  MQ3.setA(4.8387); MQ3.setB(-2.68); //Benzeno
+  float Benzeno = MQ3.readSensor();
 
   MQ4.setA(30000000); MQ4.setB(-8.308); //smoke 
-float smoke = MQ4.readSensor(); 
- 
-  MQ135.setA(110.47); MQ135.setB(-2.862); //CO2 
-float CO2 = MQ135.readSensor(); 
-  
-  MQ135.setA(44.947); MQ135.setB(-3.445); // Toluene
-float Toluene = MQ135.readSensor(); 
-  
-  MQ135.setA(102.2 ); MQ135.setB(-2.473); //NH4 
-float NH4 = MQ135.readSensor(); 
-  
+  float Fumaca = MQ4.readSensor();
+
+  //MQ3.setA(0.3934); MQ3.setB(-1.504); //Alcohol
+  //float Alcohol = MQ3.readSensor(); 
+  float Alcool = analogRead(A0);
+
   MQ135.setA(34.668); MQ135.setB(-3.369); //Acetone
-float Acetone = MQ135.readSensor(); 
+  float Acetona = MQ135.readSensor();
  
-  MQ7.setA(99.042); MQ7.setB(-1.518); //CO
-float CO = MQ7.readSensor(); 
-
-  MQ8.setA(976.97); MQ8.setB(-0.688); // H2
-float H2 = MQ8.readSensor();
-
-  MQ9.setA(1000.5); MQ9.setB(-2.186); //flamable gas
-float FG = MQ9.readSensor();
-
-
-/**
-  Serial.print("Alcool:  "); Serial.println(Alcohol);
-  Serial.print("Benzeno:  "); Serial.println(Benzene);
-  Serial.print("Hexano:   "); Serial.println(Hexane);
-  Serial.print("Metano:  "); Serial.println(CH4);
-  Serial.print("Smoke:    "); Serial.println(smoke);
-  Serial.print("Dioxido de carbono:      "); Serial.println(CO2);
-  Serial.print("Tolueno:  "); Serial.println(Toluene);
-  Serial.print("Amonia:      "); Serial.println(NH4);
-  Serial.print("Acetona:  "); Serial.println(Acetone);  
-  Serial.print("Monoxido de carbono:       "); Serial.println(CO);
-  Serial.print("Hidrogenio:       "); Serial.println(H2);
-  Serial.print("Gas inflamavel:       "); Serial.println(FG);
-  Serial.println("--------------------------------------------------------");
-*/
   if (myFile) {
 
-   myFile.println("Escrevendo Alcool :");myFile.println(Alcohol);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Benzeno :"); myFile.println(Benzene);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Hexano :"); myFile.println(Hexane);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Metano :"); myFile.println(CH4);
-   myFile.flush();
-   delay(1000);
-   /*
-   myFile.println("Escrevendo Smoke :"); myFile.println(smoke);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Dióxido de carbono :"); myFile.println(CO2);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Tolueno :"); myFile.println(Toluene);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Amônia :"); myFile.println(NH4);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Acetona :"); myFile.println(Acetone);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Monóxido de carbono :"); myFile.println(CO);
-   myFile.flush();
-   delay(1000);
-   myFile.println("Escrevendo Hidrogênio :"); myFile.println(H2);
-   myFile.flush();
-   myFile.println("Escrevendo Gas inflamavel :"); myFile.println(FG);
-   delay(1000);
-/*
-
-    Serial.println("Escrevendo Alcool : ");
-    myFile.println("Escrevendo Alcool :"); myFile.println(Alcohol);
     
-    Serial.println("Escrevendo Benzeno : ");
-    myFile.println("Escrevendo Benzeno :"); myFile.println(Benzene);
-
-    Serial.println("Escrevendo Hexano : ");
-    myFile.println("Escrevendo Hexano :"); myFile.println(Hexane);
-
-    Serial.println("Escrevendo Metano : ");
-    myFile.println("Escrevendo Metano :"); myFile.println(CH4);
-
-    Serial.println("Escrevendo Smoke : ");
-    myFile.println("Escrevendo Smoke :"); myFile.println(smoke);
- 
-    Serial.println("Escrevendo Dióxido de carbono : ");
-    myFile.println("Escrevendo Dióxido de carbono :"); myFile.println(CO2);   
+    Serial.print("CO ");Serial.println(CO);
+    Serial.print("CO2 ");Serial.println(CO2);
+    Serial.print("Amonia ");Serial.println(Amonia);
+    Serial.print("Benzeno ");Serial.println(Benzeno);
+    Serial.print("Fumaca ");Serial.println(Fumaca);
+    Serial.print("Alcool ");Serial.println(Alcool);
+    Serial.print("Acetona ");Serial.println(Acetona);
     
-    Serial.println("Escrevendo Tolueno : ");
-    myFile.println("Escrevendo Tolueno :"); myFile.println(Toluene);
 
-    Serial.println("Escrevendo Amônia : ");
-    myFile.println("Escrevendo Amônia :"); myFile.println(NH4);
 
-    Serial.println("Escrevendo Acetona : ");
-    myFile.println("Escrevendo Acetona :"); myFile.println(Acetone);
-    
-    //Serial.println("Escrevendo Monóxido de carbono : ");
-    myFile.println("Escrevendo Monóxido de carbono :"); myFile.println(CO);
-    
-    //Serial.println("Escrevendo Hidrogênio : ");
-    myFile.println("Escrevendo Hidrogênio :"); myFile.println(H2);
+    myFile.print(CO);myFile.print(",");myFile.print(CO2);myFile.print(",");myFile.print(Amonia);myFile.print(",");myFile.print(Benzeno);myFile.print(",");myFile.print(Fumaca);myFile.print(",");myFile.print(Alcool);myFile.print(",");myFile.print(Acetona);myFile.println("");
 
-    //Serial.println("Escrevendo Gas inflamavel : ");
-    myFile.println("Escrevendo Gas inflamavel :"); myFile.println(FG);
 
     myFile.flush();
-*/
+
+    delay(5000);
   }
 
-  delay(2000);
 
 }
