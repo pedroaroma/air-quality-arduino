@@ -28,8 +28,8 @@ MQUnifiedsensor MQ3(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin3, Type);
 MQUnifiedsensor MQ4(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin4, Type);
 MQUnifiedsensor MQ135(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin135, Type);
 MQUnifiedsensor MQ7(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin7, Type);
-MQUnifiedsensor MQ8(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin8, Type);
-MQUnifiedsensor MQ9(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin9, Type);
+//MQUnifiedsensor MQ8(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin8, Type);
+//MQUnifiedsensor MQ9(Board, Voltage_Resolution, ADC_Bit_Resolution, Pin9, Type);
 
 
 File myFile;
@@ -69,7 +69,7 @@ void setup() {
   MQ7.init();
   MQ7.setRegressionMethod(1); //_PPM =  a*ratio^b
   MQ7.setR0(5.90);
-
+/*
   MQ8.init();
   MQ8.setRegressionMethod(1); //_PPM =  a*ratio^b
   MQ8.setR0(0.91);
@@ -77,8 +77,9 @@ void setup() {
   MQ9.init();
   MQ9.setRegressionMethod(1); //_PPM =  a*ratio^b
   MQ9.setR0(13.93);
+*/
 
-/**
+/*
   delay(1000);
   Serial.print("Calibrating please wait.");
   float  MQ3calcR0 = 0,
@@ -132,8 +133,8 @@ void loop() {
   MQ4.update();
   MQ135.update();  
   MQ7.update();
-  MQ8.update();
-  MQ9.update();
+  //MQ8.update();
+  //MQ9.update();
 
   MQ7.setA(99.042); MQ7.setB(-1.518); //Monoxido de carbono
   float CO = MQ7.readSensor(); 
